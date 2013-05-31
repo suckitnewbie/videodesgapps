@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  *
- * @author Jakub
+ * @author Jakub & Erik
  */
 public interface DomManager {
     void addMediaType(String name, List<String> attributes);
