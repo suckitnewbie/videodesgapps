@@ -16,5 +16,5 @@ public interface DomManager {
     void addRecord(String media, List<String> attributes);
     void deleteRecord(String media, int id);
     void editRecord(String media, int id, List<String> attributes);
-    List<Integer> searchRecord(String searchValue);
+    List<Integer> searchRecord(String searchValue, String media);
 }
