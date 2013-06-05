@@ -42,8 +42,9 @@ public class GoogleConnection {
     private GoogleTokenResponse response;
     private GoogleCredential credential;
     private Drive service;
+    private boolean connected;
 
-    private GoogleConnection() {
+    public GoogleConnection() {
         httpTransport = new NetHttpTransport();
         jsonFactory = new JacksonFactory();
 
@@ -53,6 +54,8 @@ public class GoogleConnection {
                 .setApprovalPrompt("auto").build();
 
         url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URI).build();
+        
+        connected = false;
     }
 
     public static GoogleConnection getConnection() {
@@ -62,6 +65,10 @@ public class GoogleConnection {
     public String getAuthentizationUrl() {
         return this.url;
     }
+    
+    public boolean isConnected() {
+        return this.connected;
+    }
 
     public boolean connect(String code) {
         boolean result = true;
@@ -69,6 +76,7 @@ public class GoogleConnection {
         try {
             response = flow.newTokenRequest(code).setRedirectUri(REDIRECT_URI).execute();
             credential = new GoogleCredential().setFromTokenResponse(response);
+            this.connected = true;
         } catch (Exception ex) {
             Logger.getLogger(GoogleConnection.class.getName()).log(Level.SEVERE, null, ex);
             result = false;
@@ -78,10 +86,17 @@ public class GoogleConnection {
     }
 
     public GoogleDriveService buildService() {
+        if (credential == null) {
+            return null;
+        }
         if (service == null) {
             service = new Drive.Builder(httpTransport, jsonFactory, credential).build();;
         }
 
         return new GoogleDriveService(service);
+    }
+    
+    public void  close() {
+        
     }
 }
