@@ -43,7 +43,6 @@ public class GoogleDriveTreeModel implements TreeModel {
         File folder;
         File result = null;
 
-        System.out.println("Parent: " + parent + "\n   Index: " + index);
         if (parent instanceof File) {
             try {
                 folder = (File) parent;
@@ -64,7 +63,6 @@ public class GoogleDriveTreeModel implements TreeModel {
             try {
                 folder = (File) parent;
                 result = service.listFilesAndFolders(folder, mimeType).size();
-                System.out.println("Parent: " + parent + "\n   Size: " + result);
             } catch (IOException ex) {
                 Logger.getLogger(GoogleDriveTreeModel.class.getName()).log(Level.SEVERE, null, ex);
             }

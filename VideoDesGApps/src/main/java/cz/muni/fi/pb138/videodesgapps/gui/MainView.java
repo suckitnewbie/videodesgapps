@@ -5,16 +5,21 @@
 package cz.muni.fi.pb138.videodesgapps.gui;
 
 import com.google.api.services.drive.model.File;
+import cz.muni.fi.pb138.videodesgapps.dommanager.DomManager;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleConnection;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleDriveService;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 
 /**
  *
@@ -22,8 +27,9 @@ import javax.swing.JOptionPane;
  */
 public class MainView extends javax.swing.JFrame {
 
-    GoogleConnection gc;
-    GoogleDriveService service;
+    private GoogleConnection gc;
+    private GoogleDriveService service;
+    private DomManager manager;
 
     /**
      * Creates new form MainView
@@ -46,6 +52,8 @@ public class MainView extends javax.swing.JFrame {
         disconnectButton = new javax.swing.JButton();
         openFileButton = new javax.swing.JButton();
         statusBar = new javax.swing.JPanel();
+        progressBar = new javax.swing.JProgressBar();
+        backgroundActionTF = new javax.swing.JLabel();
         quickMenuBar = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
@@ -54,6 +62,22 @@ public class MainView extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         disconnectedPanel = new javax.swing.JPanel();
         connectButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jPanel2 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        categoriesList = new javax.swing.JList();
+        deleteCategoryButton = new javax.swing.JButton();
+        addCategoryButton = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jPanel3 = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        searchTF = new javax.swing.JTextField();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        deleteRecordButton = new javax.swing.JButton();
+        editRecordButton = new javax.swing.JButton();
+        addRecordButton = new javax.swing.JButton();
         menuBar = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -91,16 +115,27 @@ public class MainView extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setAutoRequestFocus(false);
+
+        statusBar.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         javax.swing.GroupLayout statusBarLayout = new javax.swing.GroupLayout(statusBar);
         statusBar.setLayout(statusBarLayout);
         statusBarLayout.setHorizontalGroup(
             statusBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, statusBarLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(backgroundActionTF)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         statusBarLayout.setVerticalGroup(
             statusBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 23, Short.MAX_VALUE)
+            .addComponent(progressBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(statusBarLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(backgroundActionTF))
         );
 
         quickMenuBar.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -161,6 +196,111 @@ public class MainView extends javax.swing.JFrame {
         gridBagConstraints.gridy = 3;
         jPanel1.add(disconnectedPanel, gridBagConstraints);
 
+        jLabel2.setText("Kategorie:");
+
+        categoriesList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        categoriesList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                categoriesListValueChanged(evt);
+            }
+        });
+        jScrollPane3.setViewportView(categoriesList);
+
+        deleteCategoryButton.setText("Smazat");
+        deleteCategoryButton.setEnabled(false);
+
+        addCategoryButton.setText("Přidat");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(addCategoryButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(deleteCategoryButton))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(deleteCategoryButton)
+                    .addComponent(addCategoryButton))
+                .addContainerGap())
+        );
+
+        jScrollPane1.setViewportView(jPanel2);
+
+        jLabel4.setText("Hledání:");
+
+        searchTF.setEnabled(false);
+
+        jScrollPane4.setViewportView(jTable1);
+
+        deleteRecordButton.setText("Smazat");
+        deleteRecordButton.setEnabled(false);
+
+        editRecordButton.setText("Změnit");
+        editRecordButton.setEnabled(false);
+
+        addRecordButton.setText("Přidat");
+        addRecordButton.setEnabled(false);
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(addRecordButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(editRecordButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(deleteRecordButton))
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 462, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(searchTF)))
+                .addContainerGap())
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4)
+                    .addComponent(searchTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(deleteRecordButton)
+                    .addComponent(editRecordButton)
+                    .addComponent(addRecordButton))
+                .addContainerGap())
+        );
+
+        jScrollPane2.setViewportView(jPanel3);
+
         jMenu1.setText("File");
         menuBar.add(jMenu1);
 
@@ -176,17 +316,24 @@ public class MainView extends javax.swing.JFrame {
             .addComponent(statusBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(quickMenuBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(478, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(quickMenuBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 201, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1))
+                    .addComponent(jScrollPane2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
@@ -216,7 +363,7 @@ public class MainView extends javax.swing.JFrame {
                 gc.connect(gcd.getCode());
                 if (gc.isConnected()) {
                     service = gc.buildService();
-                    
+
                     connectionStateLabel.setText("<html><b>Jste připojeni</b></html>");
                     connectionStateLabel.setForeground(Color.GREEN);
 
@@ -259,30 +406,107 @@ public class MainView extends javax.swing.JFrame {
     private void openFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileButtonActionPerformed
         GoogleFileChooserDialog fileChooser = new GoogleFileChooserDialog(this, true, service);
         int result = fileChooser.showOpenDialog();
-        
+
         if (result == GoogleFileChooserDialog.RESULT_OK) {
             File file = fileChooser.getSelectedFile();
-            
-            System.out.println("FILE: " + file.getTitle());
-            // TODO stahnout soubor pres service na disk a otevrit pres ODFDOM komponentu
+
+            DownloadFileTask task = new DownloadFileTask(service, file);
+            task.addPropertyChangeListener(
+                    new PropertyChangeListener() {
+                        public void propertyChange(PropertyChangeEvent evt) {
+                            if ("state".equals(evt.getPropertyName())) {
+                                String value = evt.getNewValue().toString();
+                                if (value.equals(SwingWorker.StateValue.STARTED)) {
+                                    backgroundActionTF.setText("Stahování souboru");
+                                    progressBar.setValue(10);
+                                }
+                                if (value.equals(SwingWorker.StateValue.DONE)) {
+                                    backgroundActionTF.setText("Hotovo");
+                                    progressBar.setValue(0);
+                                }
+                            }
+                        }
+                    });
+
+            task.execute();
         }
     }//GEN-LAST:event_openFileButtonActionPerformed
 
+    private void categoriesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_categoriesListValueChanged
+        boolean selected = !categoriesList.isSelectionEmpty();
+
+        deleteCategoryButton.setEnabled(selected);
+        
+        searchTF.setEnabled(selected);
+        addRecordButton.setEnabled(selected);
+        editRecordButton.setEnabled(selected);
+        deleteRecordButton.setEnabled(selected);
+
+        // TODO content table loeading
+    }//GEN-LAST:event_categoriesListValueChanged
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addCategoryButton;
+    private javax.swing.JButton addRecordButton;
+    private javax.swing.JLabel backgroundActionTF;
+    private javax.swing.JList categoriesList;
     private javax.swing.JButton connectButton;
     private javax.swing.JPanel connectedPanel;
     private javax.swing.JLabel connectionStateLabel;
+    private javax.swing.JButton deleteCategoryButton;
+    private javax.swing.JButton deleteRecordButton;
     private javax.swing.JButton disconnectButton;
     private javax.swing.JPanel disconnectedPanel;
+    private javax.swing.JButton editRecordButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JTable jTable1;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JButton openFileButton;
+    private javax.swing.JProgressBar progressBar;
     private javax.swing.JPanel quickMenuBar;
+    private javax.swing.JTextField searchTF;
     private javax.swing.JPanel statusBar;
     // End of variables declaration//GEN-END:variables
+
+    private class DownloadFileTask extends SwingWorker<java.io.File, Integer> {
+
+        private File fileToDownload;
+        private GoogleDriveService service;
+
+        public DownloadFileTask(GoogleDriveService service, File file) {
+            this.service = service;
+            this.fileToDownload = file;
+        }
+
+        @Override
+        protected java.io.File doInBackground() throws Exception {
+            return service.downloadFile(fileToDownload);
+        }
+
+        @Override
+        protected void done() {
+            backgroundActionTF.setText("Soubor stáhnut");
+            try {
+                java.io.File downloadedFile = this.get();
+                // TODO open downloaded file to DomManager and load content to gui componenets - categoriesList
+            } catch (InterruptedException ex) {
+                Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(rootPane, "Chyba při otevírání souboru", "Chyba", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 }
