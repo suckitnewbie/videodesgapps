@@ -27,7 +27,7 @@ public class DomManagerImpl implements DomManager {
 
     @Override
     public void addMediaType(String name, List<String> attributes) {
-        
+
         try {
             OdfTable t = OdfTable.newTable(inputDocument);
             t.setTableName(name);
@@ -45,8 +45,7 @@ public class DomManagerImpl implements DomManager {
             OdfTable table = inputDocument.getTableByName(name);
             if (table != null) {
                 table.remove();
-            }
-            else {
+            } else {
                 throw new IllegalArgumentException("Media not found.");
             }
         } catch (Exception ex) {
@@ -60,12 +59,14 @@ public class DomManagerImpl implements DomManager {
         OdfTable table;
         table = inputDocument.getTableByName(media);
 
-        if (table == null) throw new IllegalArgumentException("Media not found.");
-        
+        if (table == null) {
+            throw new IllegalArgumentException("Media not found.");
+        }
+
         int rowNumber = this.findFirstEmptyRow(media);
 
         for (int i = 0; i < attributes.size(); i++) {
-            OdfTableCell cell = table.getCellByPosition(i, rowNumber);
+            OdfTableCell cell = table.getCellByPosition(i + this.findFirstAttributePosition(media), rowNumber);
             cell.setStringValue(attributes.get(i));
         }
 
@@ -76,8 +77,10 @@ public class DomManagerImpl implements DomManager {
 
         OdfTable table;
         table = inputDocument.getTableByName(media);
-        
-        if (table == null) throw new IllegalArgumentException("Media not found.");
+
+        if (table == null) {
+            throw new IllegalArgumentException("Media not found.");
+        }
 
         table.removeRowsByIndex(id, id);
 
@@ -87,36 +90,40 @@ public class DomManagerImpl implements DomManager {
     public void editRecord(String media, int id, List<String> attributes) {
         OdfTable table;
         table = inputDocument.getTableByName(media);
-        
-        if (table == null) throw new IllegalArgumentException("Media not found.");
+
+        if (table == null) {
+            throw new IllegalArgumentException("Media not found.");
+        }
 
         int rowNumber = id;
 
         for (int i = 0; i < attributes.size(); i++) {
-            OdfTableCell cell = table.getCellByPosition(i, rowNumber);
+            OdfTableCell cell = table.getCellByPosition(i + this.findFirstAttributePosition(media), rowNumber);
             cell.setStringValue(attributes.get(i));
         }
-        
+
     }
 
     @Override
     public List<Integer> searchRecord(String searchValue, String media) {
 
         String cellText;
-        List<Integer> result = new ArrayList<Integer>();
-        
+        List result = new ArrayList<Integer>();
+
         OdfTable table;
         table = inputDocument.getTableByName(media);
-        
-        if (table == null) throw new IllegalArgumentException("Media not found.");
+
+        if (table == null) {
+            throw new IllegalArgumentException("Media not found.");
+        }
 
 
         for (int row = 0; row < table.getRowCount(); row++) {
-            
+
             for (int column = 0; column < table.getColumnCount(); column++) {
-                
+
                 cellText = table.getCellByPosition(column, row).getDisplayText();
-                
+
                 if (cellText.equals(searchValue)) {
                     result.add(row + 1);
                     break;
@@ -129,27 +136,97 @@ public class DomManagerImpl implements DomManager {
 
     }
 
+    public void loadTableToMediaType(String media, MediaType type) {
+        List attributes = new ArrayList<String>();
+        List records = new ArrayList<ArrayList<String>>();
+
+        OdfTable table;
+        table = inputDocument.getTableByName(media);
+
+        int firstColumn = this.findFirstAttributePosition(media);
+        int lastColumn = this.findLastAttributePosition(media);
+
+        for (int col = firstColumn; col < lastColumn+1 ; col++) {
+            attributes.add(table.getCellByPosition(col, 0).getDisplayText());
+        }
+
+        for (int row = 1; row < table.getRowCount(); row++) {
+            List rowCells = new ArrayList<String>();
+            for (int col = firstColumn; col < lastColumn +1; col++) {
+                rowCells.add(table.getCellByPosition(col, row).getDisplayText());
+            }
+            records.add(rowCells);
+        }
+
+        type.setAttributes(attributes);
+        type.setRecords(records);
+
+    }
+
     public int findFirstEmptyRow(String media) {
 
         OdfTable table;
         table = inputDocument.getTableByName(media);
-        
-        if (table == null) throw new IllegalArgumentException("Media not found.");
-        
+
+        if (table == null) {
+            throw new IllegalArgumentException("Media not found.");
+        }
+
         for (int row = 0; row < table.getRowCount(); row++) {
             String controlStr = "";
-            
+
             for (int col = 0; col < table.getColumnCount(); col++) {
                 controlStr += table.getCellByPosition(col, row).getDisplayText();
-                if(!controlStr.equals("")) break; 
+                if (!controlStr.equals("")) {
+                    break;   //works?
+                }
             }
-            
+
             if (controlStr.equals("")) {
                 return row;
             }
         }
-        
+
         table.appendRow();
         return table.getRowCount() - 1;
+    }
+
+    public int findFirstAttributePosition(String media) {
+
+        OdfTable table;
+        table = inputDocument.getTableByName(media);
+
+        for (int col = 0; col < table.getColumnCount(); col++) {
+            if (!table.getCellByPosition(col, 0).getDisplayText().equals("")) {
+                return col;
+            }
+        }
+        return table.getColumnCount()-1;
+    }
+
+    public int findLastAttributePosition(String media) {
+
+        OdfTable table;
+        table = inputDocument.getTableByName(media);
+        
+        for (int col = 0; col < table.getColumnCount() - 1; col++) {
+            if (!table.getCellByPosition(col, 0).getDisplayText().equals("")
+                    && table.getCellByPosition(col + 1, 0).getDisplayText().equals("")) {
+                return col;
+            }
+        }
+        return table.getColumnCount()-1;
+    }
+    
+    public List<String> getMediaNames() {
+        
+        List result = new ArrayList<String>();
+        
+        for(int i = 0; i < inputDocument.getTableList().size(); i++) {
+            result.add(inputDocument.getTableList().get(i).getTableName());
+        }
+        
+        return result;
+        
     }
 }
