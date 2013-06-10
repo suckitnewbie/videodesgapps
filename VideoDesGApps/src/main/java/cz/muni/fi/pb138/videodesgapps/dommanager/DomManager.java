@@ -13,7 +13,7 @@ import java.util.List;
 public interface DomManager {
     void addMediaType(String name, List<String> attributes);
     void deleteMediaType(String name);
-    List<String> listMediaTypes();
+    
     List<String> getMediaNames();
     void addRecord(String media, List<String> attributes);
     void deleteRecord(String media, int id);

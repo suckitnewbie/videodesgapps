@@ -4,6 +4,7 @@
  */
 package cz.muni.fi.pb138.videodesgapps.dommanager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -20,7 +21,7 @@ import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 public class DomManagerImpl implements DomManager {
 
     private OdfSpreadsheetDocument inputDocument;
-    
+    private java.io.File file;
     
     public DomManagerImpl(OdfSpreadsheetDocument inputDocument) {
         this.inputDocument = inputDocument;
@@ -29,6 +30,7 @@ public class DomManagerImpl implements DomManager {
     public DomManagerImpl (java.io.File file) {
         try {
             inputDocument = (OdfSpreadsheetDocument) OdfSpreadsheetDocument.loadDocument(file);
+            this.file = file;
         } catch (Exception ex) {
             System.err.println("Unable to parse input file.");
             Logger.getLogger(DomManagerImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -242,9 +244,15 @@ public class DomManagerImpl implements DomManager {
         return result;
         
     }
-
-    public List<String> listMediaTypes() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    
+    public java.io.File saveSpreadSheet(){
+        try {
+            inputDocument.save(file);
+            return file;
+        } catch (Exception ex) {
+            Logger.getLogger(DomManagerImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return file;
     }
 
     public String getRecord(String media, int id) {
