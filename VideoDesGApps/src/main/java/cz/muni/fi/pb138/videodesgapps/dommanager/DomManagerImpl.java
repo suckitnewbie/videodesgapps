@@ -20,21 +20,19 @@ import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 public class DomManagerImpl implements DomManager {
 
     private OdfSpreadsheetDocument inputDocument;
-
-    public List<String> listMediaTypes() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public String getRecord(String media, int id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public List<String> listRecords(String media) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
+    
+    
     public DomManagerImpl(OdfSpreadsheetDocument inputDocument) {
         this.inputDocument = inputDocument;
+    }
+    
+    public DomManagerImpl (java.io.File file) {
+        try {
+            inputDocument = (OdfSpreadsheetDocument) OdfSpreadsheetDocument.loadDocument(file);
+        } catch (Exception ex) {
+            System.err.println("Unable to parse input file.");
+            Logger.getLogger(DomManagerImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -240,5 +238,17 @@ public class DomManagerImpl implements DomManager {
         
         return result;
         
+    }
+
+    public List<String> listMediaTypes() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public String getRecord(String media, int id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public List<String> listRecords(String media) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
