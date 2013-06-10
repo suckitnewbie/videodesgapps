@@ -144,6 +144,21 @@ public class GoogleDriveService {
         return result;
     }
 
+    public File saveFile(File file, java.io.File content) {
+        // Content
+        FileContent fileContent = new FileContent(file.getMimeType(), content);
+        File savedFile = null;
+
+        try {
+            savedFile = service.files().insert(file, fileContent).execute();
+        } catch (IOException ex) {
+            Logger.getLogger(GoogleConnection.class.getName()).log(Level.SEVERE, null, ex);
+            savedFile = null;
+        }
+
+        return savedFile;
+    }
+    
     public File saveFile(String name, String description, String mimeType, java.io.File content) {
         // Metadata
         File file = new File();

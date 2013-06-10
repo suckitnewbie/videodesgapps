@@ -8,6 +8,7 @@ import com.google.api.services.drive.model.File;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleDriveService;
 import cz.muni.fi.pb138.videodesgapps.gui.components.GoogleDriveTreeModel;
 import cz.muni.fi.pb138.videodesgapps.gui.components.GoogleDriveTreeRenderer;
+import javax.swing.JOptionPane;
 
 /**
  * Tree file chooser dialog for browsing Google Drive file system
@@ -33,7 +34,7 @@ public class GoogleFileChooserDialog extends javax.swing.JDialog {
     public int showOpenDialog() {
         okButton.setText("Otevřít");
         pathTF.setEnabled(false);
-        
+
         setVisible(true);
 
         return result;
@@ -42,24 +43,24 @@ public class GoogleFileChooserDialog extends javax.swing.JDialog {
     public int showSaveDialog() {
         okButton.setText("Uložit");
         pathTF.setEnabled(true);
-        
+
         setVisible(true);
 
         return result;
     }
-    
+
     public File getSelectedFile() {
         File result = null;
         Object selectedObject = jTree1.getSelectionPath().getLastPathComponent();
         if (selectedObject != null && selectedObject instanceof File) {
-            result = (File)selectedObject;
+            result = (File) selectedObject;
         }
-        
+
         return result;
     }
-    
-    public String getInsertedFilePath() {
-        return pathTF.getSelectedText();
+
+    public String getInsertedFileName() {
+        return pathTF.getText();
     }
 
     /**
@@ -148,17 +149,16 @@ public class GoogleFileChooserDialog extends javax.swing.JDialog {
         StringBuilder sb = new StringBuilder();
         File file;
 
-        for (Object partOfPath : evt.getPath().getPath()) {
-            if (partOfPath instanceof File) {
-                file = (File) partOfPath;
-                sb.append(file.getTitle());
-                if (service.isFolder(file)) {
-                    sb.append(java.io.File.separator);
-                }
+
+        Object partOfPath = evt.getPath().getLastPathComponent();
+        if (partOfPath instanceof File) {
+            file = (File) partOfPath;
+            if (!service.isFolder(file)) {
+                pathTF.setText(file.getTitle());
             }
         }
 
-        pathTF.setText(sb.toString());
+        
     }//GEN-LAST:event_jTree1ValueChanged
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
@@ -167,8 +167,16 @@ public class GoogleFileChooserDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        result = RESULT_OK;
-        this.setVisible(false);
+        if (pathTF.getText().trim().isEmpty()) {
+            int dialogResult = JOptionPane.showConfirmDialog(this, "Nebyl vybrán žádný soubor. Opravdu zrušit?", "Chyba", JOptionPane.YES_NO_OPTION);
+            if (dialogResult == JOptionPane.YES_OPTION) {
+                result = RESULT_CANCEL;
+                this.setVisible(false);
+            }
+        } else {
+            result = RESULT_OK;
+            this.setVisible(false);
+        }
     }//GEN-LAST:event_okButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
