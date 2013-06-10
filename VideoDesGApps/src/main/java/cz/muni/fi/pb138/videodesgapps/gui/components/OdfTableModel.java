@@ -18,7 +18,6 @@ public class OdfTableModel extends AbstractTableModel {
     private MediaType mediaType = new MediaType();
 
     public OdfTableModel() {
-        
     }
 
     @Override
@@ -38,15 +37,29 @@ public class OdfTableModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         ArrayList<String> record = (ArrayList<String>) mediaType.getRecords().get(rowIndex);
-        
-            if (columnIndex < getColumnCount()) return record.get(columnIndex).toString();
-            else throw new IllegalArgumentException("WRONG");
+
+        if (columnIndex < getColumnCount()) {
+            return record.get(columnIndex).toString();
+        } else {
+            throw new IllegalArgumentException("WRONG");
+        }
     }
-    
 
     @Override
     public String getColumnName(int columnIndex) {
-        
-            return mediaType.getAttributes().get(columnIndex).toString();
-        }
+
+        return mediaType.getAttributes().get(columnIndex).toString();
     }
+
+    public MediaType getMediaType() {
+        return mediaType;
+    }
+    
+    public void fireInserted(){
+        fireTableRowsInserted(mediaType.getRecords().size()-1, mediaType.getRecords().size()-1);
+    }
+    
+    public void fireDeleted(int index){
+        fireTableRowsDeleted(index, index);
+    }
+}

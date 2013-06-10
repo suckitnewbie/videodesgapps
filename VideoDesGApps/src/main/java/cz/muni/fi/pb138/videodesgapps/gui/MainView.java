@@ -596,92 +596,22 @@ public class MainView extends javax.swing.JFrame {
     }//GEN-LAST:event_deleteCategoryButtonActionPerformed
 
     private void addRecordButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addRecordButtonActionPerformed
-        /*Dialogs.newRecordDialog(recordsTable.getModel());
+        OdfTableModel model = (OdfTableModel)recordsTable.getModel();
+        List record = Dialogs.newRecordDialog(model.getMediaType());
         
-         manager.addRecord(categoriesList.getSelectedValue().toString(), null);*/
+        model.fireInserted();;
+        manager.addRecord(categoriesList.getSelectedValue().toString(), record);
     }//GEN-LAST:event_addRecordButtonActionPerformed
 
-    private void saveFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveFileButtonActionPerformed
-        SwingWorker task;
+    private void deleteRecordButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteRecordButtonActionPerformed
+        OdfTableModel model = (OdfTableModel)recordsTable.getModel();
+        manager.deleteRecord(categoriesList.getSelectedValue().toString(), recordsTable.getSelectedRow() );
+        model.getMediaType().getRecords().remove(recordsTable.getSelectedRow());
+        
+        model.fireDeleted(recordsTable.getSelectedRow());
+        
+    }//GEN-LAST:event_deleteRecordButtonActionPerformed
 
-        // Content
-        java.io.File content = manager.saveSpreadSheet();
-
-        task = new SaveFileTask(service, actualFile, content);
-
-        task.addPropertyChangeListener(
-                new PropertyChangeListener() {
-                    public void propertyChange(PropertyChangeEvent evt) {
-                        if ("state".equals(evt.getPropertyName())) {
-                            String value = evt.getNewValue().toString();
-                            if (value.equals(SwingWorker.StateValue.STARTED)) {
-                                backgroundActionTF.setText("Ukládání souboru");
-                                progressBar.setValue(10);
-                            }
-                            if (value.equals(SwingWorker.StateValue.DONE)) {
-                                backgroundActionTF.setText("Hotovo");
-                                progressBar.setValue(0);
-                            }
-                        }
-                    }
-                });
-
-        task.execute();
-    }//GEN-LAST:event_saveFileButtonActionPerformed
-
-    private void saveAsFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsFileButtonActionPerformed
-        GoogleFileChooserDialog fileChooser = new GoogleFileChooserDialog(this, true, service);
-        int result = fileChooser.showSaveDialog();
-
-        SwingWorker task;
-        if (result == GoogleFileChooserDialog.RESULT_OK) {
-            File file = fileChooser.getSelectedFile();
-
-            if (service.isFolder(file)) {
-                // Folder selected. Need to get name of the new file from the text field
-                String name = fileChooser.getInsertedFileName();
-                if (!name.endsWith(".ods")) {
-                    name += ".ods";
-                }
-
-                File newFile = new File();
-                newFile.setTitle(name);
-                newFile.setDescription(actualFile.getDescription());
-                newFile.setMimeType(actualFile.getMimeType());
-                ParentReference parent = new ParentReference();
-                parent.setId(file.getId());
-                newFile.setParents(Collections.singletonList(parent));
-
-                // Content
-                java.io.File content = manager.saveSpreadSheet();
-
-                task = new SaveNewFileTask(service, newFile, content);
-            } else {
-                // Content
-                java.io.File content = manager.saveSpreadSheet();
-
-                task = new SaveFileTask(service, file, content);
-            }
-            task.addPropertyChangeListener(
-                    new PropertyChangeListener() {
-                        public void propertyChange(PropertyChangeEvent evt) {
-                            if ("state".equals(evt.getPropertyName())) {
-                                String value = evt.getNewValue().toString();
-                                if (value.equals(SwingWorker.StateValue.STARTED)) {
-                                    backgroundActionTF.setText("Ukládání souboru");
-                                    progressBar.setValue(10);
-                                }
-                                if (value.equals(SwingWorker.StateValue.DONE)) {
-                                    backgroundActionTF.setText("Hotovo");
-                                    progressBar.setValue(0);
-                                }
-                            }
-                        }
-                    });
-
-            task.execute();
-        }
-    }//GEN-LAST:event_saveAsFileButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCategoryButton;
     private javax.swing.JButton addRecordButton;
