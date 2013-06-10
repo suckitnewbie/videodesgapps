@@ -30,7 +30,7 @@ public class App {
             }
         });
 
-                
+/*                
          // CONNECTION TO GOOGLE DRIVE
          // Step 1: prepare instance
          GoogleConnection gc = GoogleConnection.getConnection();
@@ -82,7 +82,7 @@ public class App {
          } else {
          System.out.println("Incorrect code inserted.");
          }
-        
+*/        
          
     }
 }

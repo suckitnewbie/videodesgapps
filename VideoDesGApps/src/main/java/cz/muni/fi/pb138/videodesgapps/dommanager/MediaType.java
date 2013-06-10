@@ -50,4 +50,8 @@ public class MediaType {
         records.add(record);
     }
     
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

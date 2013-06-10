@@ -10,6 +10,7 @@ import cz.muni.fi.pb138.videodesgapps.dommanager.DomManagerImpl;
 import cz.muni.fi.pb138.videodesgapps.dommanager.MediaType;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleConnection;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleDriveService;
+import cz.muni.fi.pb138.videodesgapps.gui.components.OdfTableModel;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.beans.PropertyChangeEvent;
@@ -17,11 +18,14 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.ListModel;
 import javax.swing.SwingWorker;
 
 /**
@@ -77,7 +81,7 @@ public class MainView extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         searchTF = new javax.swing.JTextField();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        recordsTable = new javax.swing.JTable();
         deleteRecordButton = new javax.swing.JButton();
         editRecordButton = new javax.swing.JButton();
         addRecordButton = new javax.swing.JButton();
@@ -161,6 +165,8 @@ public class MainView extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cz/muni/fi/pb138/videodesgapps/gui/components/Google_Logo.png"))); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -209,18 +215,8 @@ public class MainView extends javax.swing.JFrame {
 
         deleteCategoryButton.setText("Smazat");
         deleteCategoryButton.setEnabled(false);
-        deleteCategoryButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                deleteCategoryButtonActionPerformed(evt);
-            }
-        });
 
         addCategoryButton.setText("Přidat");
-        addCategoryButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addCategoryButtonActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -261,7 +257,13 @@ public class MainView extends javax.swing.JFrame {
 
         searchTF.setEnabled(false);
 
-        jScrollPane4.setViewportView(jTable1);
+        recordsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        recordsTable.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                recordsTableValueChanged(evt);
+            }
+        });
+        jScrollPane4.setViewportView(recordsTable);
 
         deleteRecordButton.setText("Smazat");
         deleteRecordButton.setEnabled(false);
@@ -402,7 +404,10 @@ public class MainView extends javax.swing.JFrame {
         gc.close();
         gc = null;
 
-        connectionStateLabel.setText("<html><b>Neste připojeni</b></html>");
+        categoriesList.clearSelection();
+        categoriesList.setListData(new Object[]{});
+
+        connectionStateLabel.setText("<html><b>Nejste připojeni</b></html>");
         connectionStateLabel.setForeground(Color.RED);
 
         java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
@@ -412,37 +417,45 @@ public class MainView extends javax.swing.JFrame {
         jPanel1.remove(connectedPanel);
         jPanel1.add(disconnectedPanel, gridBagConstraints);
         jPanel1.repaint();
+
+
     }//GEN-LAST:event_disconnectButtonActionPerformed
 
     private void openFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFileButtonActionPerformed
         GoogleFileChooserDialog fileChooser = new GoogleFileChooserDialog(this, true, service);
         int result = fileChooser.showOpenDialog();
-
+        System.out.println("BEFORE: " + categoriesList.getWidth());
         if (result == GoogleFileChooserDialog.RESULT_OK) {
             File file = fileChooser.getSelectedFile();
 
             DownloadFileTask task = new DownloadFileTask(service, file);
             task.addPropertyChangeListener(
                     new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent evt) {
-                    if ("state".equals(evt.getPropertyName())) {
-                        String value = evt.getNewValue().toString();
-                        if (value.equals(SwingWorker.StateValue.STARTED)) {
-                            backgroundActionTF.setText("Stahování souboru");
-                            progressBar.setValue(10);
+                        public void propertyChange(PropertyChangeEvent evt) {
+                            if ("state".equals(evt.getPropertyName())) {
+                                String value = evt.getNewValue().toString();
+                                if (value.equals(SwingWorker.StateValue.STARTED)) {
+                                    backgroundActionTF.setText("Stahování souboru");
+                                    progressBar.setValue(10);
+                                }
+                                if (value.equals(SwingWorker.StateValue.DONE)) {
+                                    backgroundActionTF.setText("Hotovo");
+                                    progressBar.setValue(0);
+                                }
+                            }
                         }
-                        if (value.equals(SwingWorker.StateValue.DONE)) {
-                            backgroundActionTF.setText("Hotovo");
-                            progressBar.setValue(0);
-                        }
-                    }
-                }
-            });
+                    });
 
             task.execute();
         }
-
     }//GEN-LAST:event_openFileButtonActionPerformed
+
+    private void recordsTableValueChanged(javax.swing.event.ListSelectionEvent evt) {
+        boolean selected = recordsTable.getSelectedRow() != -1;
+
+        editRecordButton.setEnabled(selected);
+        deleteRecordButton.setEnabled(selected);
+    }
 
     private void categoriesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_categoriesListValueChanged
         boolean selected = !categoriesList.isSelectionEmpty();
@@ -451,28 +464,32 @@ public class MainView extends javax.swing.JFrame {
 
         searchTF.setEnabled(selected);
         addRecordButton.setEnabled(selected);
-        editRecordButton.setEnabled(selected);
-        deleteRecordButton.setEnabled(selected);
+        editRecordButton.setEnabled(editRecordButton.isEnabled() && selected);
+        deleteRecordButton.setEnabled(deleteRecordButton.isEnabled() && selected);
 
-        // TODO content table loeading
+        OdfTableModel tableModel = new OdfTableModel();
+
+        MediaType mediaType = manager.loadTableToMediaType(categoriesList.getSelectedValue().toString());
+        tableModel.setMediaType(mediaType);
+
+        recordsTable.setModel(tableModel);
     }//GEN-LAST:event_categoriesListValueChanged
 
     private void addCategoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCategoryButtonActionPerformed
         MediaType type = Dialogs.newMediaTypeDialog();
         manager.addMediaType(type.getName(), type.getAttributes());
         DefaultListModel model = (DefaultListModel) categoriesList.getModel();
-        
+
         model.addElement(type.getName());
-        
+
     }//GEN-LAST:event_addCategoryButtonActionPerformed
 
     private void deleteCategoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteCategoryButtonActionPerformed
         manager.deleteMediaType(categoriesList.getSelectedValue().toString());
         DefaultListModel model = (DefaultListModel) categoriesList.getModel();
-        
+
         model.remove(categoriesList.getSelectedIndex());
     }//GEN-LAST:event_deleteCategoryButtonActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCategoryButton;
     private javax.swing.JButton addRecordButton;
@@ -500,11 +517,11 @@ public class MainView extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTable jTable1;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JButton openFileButton;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JPanel quickMenuBar;
+    private javax.swing.JTable recordsTable;
     private javax.swing.JTextField searchTF;
     private javax.swing.JPanel statusBar;
     // End of variables declaration//GEN-END:variables
@@ -529,6 +546,7 @@ public class MainView extends javax.swing.JFrame {
             backgroundActionTF.setText("Soubor stáhnut");
             try {
                 java.io.File downloadedFile = this.get();
+
                 manager = new DomManagerImpl(downloadedFile);
 
                 DefaultListModel model = new DefaultListModel();
@@ -536,7 +554,6 @@ public class MainView extends javax.swing.JFrame {
                     model.add(i, manager.getMediaNames().get(i));
                 }
                 categoriesList.setModel(model);
-                
             } catch (InterruptedException ex) {
                 Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ExecutionException ex) {
