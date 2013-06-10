@@ -21,6 +21,18 @@ public class DomManagerImpl implements DomManager {
 
     private OdfSpreadsheetDocument inputDocument;
 
+    public List<String> listMediaTypes() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public String getRecord(String media, int id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public List<String> listRecords(String media) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     public DomManagerImpl(OdfSpreadsheetDocument inputDocument) {
         this.inputDocument = inputDocument;
     }
