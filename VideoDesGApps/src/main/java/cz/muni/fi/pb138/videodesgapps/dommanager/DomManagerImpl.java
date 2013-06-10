@@ -179,6 +179,9 @@ public class DomManagerImpl implements DomManager {
             }
             if (!controlStr.equals("")) {
                 records.add(rowCells);
+            } else {
+                table.removeRowsByIndex(row, 1);
+                row--;
             }
             controlStr = "";
         }

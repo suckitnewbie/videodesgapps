@@ -294,6 +294,11 @@ public class MainView extends javax.swing.JFrame {
 
         editRecordButton.setText("Změnit");
         editRecordButton.setEnabled(false);
+        editRecordButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editRecordButtonActionPerformed(evt);
+            }
+        });
 
         addRecordButton.setText("Přidat");
         addRecordButton.setEnabled(false);
@@ -702,6 +707,15 @@ public class MainView extends javax.swing.JFrame {
 
         model.fireDeleted(recordsTable.getSelectedRow());
     }//GEN-LAST:event_deleteRecordButtonActionPerformed
+
+    private void editRecordButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editRecordButtonActionPerformed
+        OdfTableModel model = (OdfTableModel) recordsTable.getModel();
+        List newAttributes = Dialogs.editRecordDialog(recordsTable.getSelectedRow(), model.getMediaType());
+        manager.editRecord(categoriesList.getSelectedValue().toString(), recordsTable.getSelectedRow()+1, newAttributes);
+        
+        model.fireUpdate(recordsTable.getSelectedRow());
+    }//GEN-LAST:event_editRecordButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCategoryButton;
     private javax.swing.JButton addRecordButton;

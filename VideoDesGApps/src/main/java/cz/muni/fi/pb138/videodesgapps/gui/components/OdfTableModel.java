@@ -62,4 +62,8 @@ public class OdfTableModel extends AbstractTableModel {
     public void fireDeleted(int index){
         fireTableRowsDeleted(index, index);
     }
+    
+    public void fireUpdate(int index) {
+        fireTableRowsUpdated(index, index);
+    }
 }
