@@ -160,6 +160,8 @@ public class DomManagerImpl implements DomManager {
         int firstColumn = this.findFirstAttributePosition(media);
         int lastColumn = this.findLastAttributePosition(media);
 
+        String controlStr = "";
+        
         for (int col = firstColumn; col < lastColumn+1 ; col++) {
             attributes.add(table.getCellByPosition(col, 0).getDisplayText());
         }
@@ -168,8 +170,10 @@ public class DomManagerImpl implements DomManager {
             List rowCells = new ArrayList<String>();
             for (int col = firstColumn; col < lastColumn +1; col++) {
                 rowCells.add(table.getCellByPosition(col, row).getDisplayText());
+                controlStr += table.getCellByPosition(col, row).getDisplayText();
             }
-            records.add(rowCells);
+            if(!controlStr.equals(""))records.add(rowCells);
+            controlStr = "";
         }
 
         type.setAttributes(attributes);
