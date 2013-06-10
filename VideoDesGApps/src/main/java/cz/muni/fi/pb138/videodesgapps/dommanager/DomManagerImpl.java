@@ -17,17 +17,16 @@ import org.odftoolkit.odfdom.doc.table.OdfTableCell;
  *
  * @author Jakub & Erik & Michal
  */
-
 public class DomManagerImpl implements DomManager {
 
     private OdfSpreadsheetDocument inputDocument;
     private java.io.File file;
-    
+
     public DomManagerImpl(OdfSpreadsheetDocument inputDocument) {
         this.inputDocument = inputDocument;
     }
-    
-    public DomManagerImpl (java.io.File file) {
+
+    public DomManagerImpl(java.io.File file) {
         try {
             inputDocument = (OdfSpreadsheetDocument) OdfSpreadsheetDocument.loadDocument(file);
             this.file = file;
@@ -41,9 +40,15 @@ public class DomManagerImpl implements DomManager {
     public void addMediaType(String name, List<String> attributes) {
 
         try {
-            OdfTable t = OdfTable.newTable(inputDocument);
-            t.setTableName(name);
-            this.addRecord(name, attributes);
+            OdfTable table = OdfTable.newTable(inputDocument);
+            table.setTableName(name);
+            if (table == null) {
+                throw new IllegalArgumentException("Media not found.");
+            }
+            for (int i = 0; i < attributes.size(); i++) {
+                OdfTableCell cell = table.getCellByPosition(i, 0);
+                cell.setStringValue(attributes.get(i));
+            }
 
         } catch (Exception ex) {
             Logger.getLogger(DomManagerImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -94,7 +99,7 @@ public class DomManagerImpl implements DomManager {
             throw new IllegalArgumentException("Media not found.");
         }
 
-        table.removeRowsByIndex(id, id);
+        table.removeRowsByIndex(id, 1);
 
     }
 
@@ -150,7 +155,7 @@ public class DomManagerImpl implements DomManager {
 
     public MediaType loadTableToMediaType(String media) {
         MediaType type = new MediaType();
-        
+
         List attributes = new ArrayList<String>();
         List records = new ArrayList<ArrayList<String>>();
 
@@ -161,18 +166,20 @@ public class DomManagerImpl implements DomManager {
         int lastColumn = this.findLastAttributePosition(media);
 
         String controlStr = "";
-        
-        for (int col = firstColumn; col < lastColumn+1 ; col++) {
+
+        for (int col = firstColumn; col < lastColumn + 1; col++) {
             attributes.add(table.getCellByPosition(col, 0).getDisplayText());
         }
 
         for (int row = 1; row < table.getRowCount(); row++) {
             List rowCells = new ArrayList<String>();
-            for (int col = firstColumn; col < lastColumn +1; col++) {
+            for (int col = firstColumn; col < lastColumn + 1; col++) {
                 rowCells.add(table.getCellByPosition(col, row).getDisplayText());
                 controlStr += table.getCellByPosition(col, row).getDisplayText();
             }
-            if(!controlStr.equals(""))records.add(rowCells);
+            if (!controlStr.equals("")) {
+                records.add(rowCells);
+            }
             controlStr = "";
         }
 
@@ -220,36 +227,36 @@ public class DomManagerImpl implements DomManager {
                 return col;
             }
         }
-        return table.getColumnCount()-1;
+        return table.getColumnCount() - 1;
     }
 
     public int findLastAttributePosition(String media) {
 
         OdfTable table;
         table = inputDocument.getTableByName(media);
-        
+
         for (int col = 0; col < table.getColumnCount() - 1; col++) {
             if (!table.getCellByPosition(col, 0).getDisplayText().equals("")
                     && table.getCellByPosition(col + 1, 0).getDisplayText().equals("")) {
                 return col;
             }
         }
-        return table.getColumnCount()-1;
+        return table.getColumnCount() - 1;
     }
-    
+
     public List<String> getMediaNames() {
-        
+
         List result = new ArrayList<String>();
-        
-        for(int i = 0; i < inputDocument.getTableList().size(); i++) {
+
+        for (int i = 0; i < inputDocument.getTableList().size(); i++) {
             result.add(inputDocument.getTableList().get(i).getTableName());
         }
-        
+
         return result;
-        
+
     }
-    
-    public java.io.File saveSpreadSheet(){
+
+    public java.io.File saveSpreadSheet() {
         try {
             inputDocument.save(file);
             return file;
