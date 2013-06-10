@@ -6,6 +6,8 @@ package cz.muni.fi.pb138.videodesgapps.gui;
 
 import com.google.api.services.drive.model.File;
 import cz.muni.fi.pb138.videodesgapps.dommanager.DomManager;
+import cz.muni.fi.pb138.videodesgapps.dommanager.DomManagerImpl;
+import cz.muni.fi.pb138.videodesgapps.dommanager.MediaType;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleConnection;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleDriveService;
 import java.awt.Color;
@@ -18,6 +20,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
@@ -29,7 +32,7 @@ public class MainView extends javax.swing.JFrame {
 
     private GoogleConnection gc;
     private GoogleDriveService service;
-    private DomManager manager;
+    private DomManagerImpl manager;
 
     /**
      * Creates new form MainView
@@ -158,8 +161,6 @@ public class MainView extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cz/muni/fi/pb138/videodesgapps/gui/components/Google_Logo.png"))); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -208,8 +209,18 @@ public class MainView extends javax.swing.JFrame {
 
         deleteCategoryButton.setText("Smazat");
         deleteCategoryButton.setEnabled(false);
+        deleteCategoryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteCategoryButtonActionPerformed(evt);
+            }
+        });
 
         addCategoryButton.setText("Přidat");
+        addCategoryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addCategoryButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -413,30 +424,31 @@ public class MainView extends javax.swing.JFrame {
             DownloadFileTask task = new DownloadFileTask(service, file);
             task.addPropertyChangeListener(
                     new PropertyChangeListener() {
-                        public void propertyChange(PropertyChangeEvent evt) {
-                            if ("state".equals(evt.getPropertyName())) {
-                                String value = evt.getNewValue().toString();
-                                if (value.equals(SwingWorker.StateValue.STARTED)) {
-                                    backgroundActionTF.setText("Stahování souboru");
-                                    progressBar.setValue(10);
-                                }
-                                if (value.equals(SwingWorker.StateValue.DONE)) {
-                                    backgroundActionTF.setText("Hotovo");
-                                    progressBar.setValue(0);
-                                }
-                            }
+                public void propertyChange(PropertyChangeEvent evt) {
+                    if ("state".equals(evt.getPropertyName())) {
+                        String value = evt.getNewValue().toString();
+                        if (value.equals(SwingWorker.StateValue.STARTED)) {
+                            backgroundActionTF.setText("Stahování souboru");
+                            progressBar.setValue(10);
                         }
-                    });
+                        if (value.equals(SwingWorker.StateValue.DONE)) {
+                            backgroundActionTF.setText("Hotovo");
+                            progressBar.setValue(0);
+                        }
+                    }
+                }
+            });
 
             task.execute();
         }
+
     }//GEN-LAST:event_openFileButtonActionPerformed
 
     private void categoriesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_categoriesListValueChanged
         boolean selected = !categoriesList.isSelectionEmpty();
 
         deleteCategoryButton.setEnabled(selected);
-        
+
         searchTF.setEnabled(selected);
         addRecordButton.setEnabled(selected);
         editRecordButton.setEnabled(selected);
@@ -444,6 +456,23 @@ public class MainView extends javax.swing.JFrame {
 
         // TODO content table loeading
     }//GEN-LAST:event_categoriesListValueChanged
+
+    private void addCategoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCategoryButtonActionPerformed
+        MediaType type = Dialogs.newMediaTypeDialog();
+        manager.addMediaType(type.getName(), type.getAttributes());
+        DefaultListModel model = (DefaultListModel) categoriesList.getModel();
+        
+        model.addElement(type.getName());
+        
+    }//GEN-LAST:event_addCategoryButtonActionPerformed
+
+    private void deleteCategoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteCategoryButtonActionPerformed
+        manager.deleteMediaType(categoriesList.getSelectedValue().toString());
+        DefaultListModel model = (DefaultListModel) categoriesList.getModel();
+        
+        model.remove(categoriesList.getSelectedIndex());
+    }//GEN-LAST:event_deleteCategoryButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCategoryButton;
     private javax.swing.JButton addRecordButton;
@@ -500,7 +529,14 @@ public class MainView extends javax.swing.JFrame {
             backgroundActionTF.setText("Soubor stáhnut");
             try {
                 java.io.File downloadedFile = this.get();
-                // TODO open downloaded file to DomManager and load content to gui componenets - categoriesList
+                manager = new DomManagerImpl(downloadedFile);
+
+                DefaultListModel model = new DefaultListModel();
+                for (int i = 0; i < manager.getMediaNames().size(); i++) {
+                    model.add(i, manager.getMediaNames().get(i));
+                }
+                categoriesList.setModel(model);
+                
             } catch (InterruptedException ex) {
                 Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ExecutionException ex) {
