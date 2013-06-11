@@ -135,14 +135,14 @@ public class DomManagerImpl implements DomManager {
         }
 
 
-        for (int row = 0; row < table.getRowCount(); row++) {
+        for (int row = 1; row < table.getRowCount(); row++) {
 
             for (int column = 0; column < table.getColumnCount(); column++) {
 
                 cellText = table.getCellByPosition(column, row).getDisplayText();
 
-                if (cellText.equals(searchValue)) {
-                    result.add(row + 1);
+                if (cellText.contains(searchValue)) {
+                    result.add(row - 1);
                     break;
                 }
 
@@ -230,7 +230,9 @@ public class DomManagerImpl implements DomManager {
                 return col;
             }
         }
-        return table.getColumnCount() - 1;
+        
+        if(table.getColumnCount() == 0) return 0;
+        else return table.getColumnCount() - 1;
     }
 
     public int findLastAttributePosition(String media) {
@@ -268,12 +270,5 @@ public class DomManagerImpl implements DomManager {
         }
         return file;
     }
-
-    public String getRecord(String media, int id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public List<String> listRecords(String media) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    
 }

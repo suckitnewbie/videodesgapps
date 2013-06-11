@@ -66,4 +66,8 @@ public class OdfTableModel extends AbstractTableModel {
     public void fireUpdate(int index) {
         fireTableRowsUpdated(index, index);
     }
+    
+    public void fireUpdateAll() {
+        fireTableRowsUpdated(0, mediaType.getRecords().size() - 1);
+    }
 }

@@ -4,9 +4,9 @@
  */
 package cz.muni.fi.pb138.videodesgapps.gui;
 
+import cz.muni.fi.pb138.videodesgapps.gui.components.MyTableCellRenderer;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.ParentReference;
-import cz.muni.fi.pb138.videodesgapps.dommanager.DomManager;
 import cz.muni.fi.pb138.videodesgapps.dommanager.DomManagerImpl;
 import cz.muni.fi.pb138.videodesgapps.dommanager.MediaType;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleConnection;
@@ -21,8 +21,6 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -30,8 +28,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
-import javax.swing.ListModel;
 import javax.swing.SwingWorker;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /**
  *
@@ -49,6 +49,48 @@ public class MainView extends javax.swing.JFrame {
      */
     public MainView() {
         initComponents();
+
+        // Listen for changes in the text
+        searchTF.getDocument().addDocumentListener(new DocumentListener() {
+            // text was changed
+            public void changedUpdate(DocumentEvent e) {
+                searchText();
+            }
+
+            // text was deleted
+            public void removeUpdate(DocumentEvent e) {
+                searchText();
+            }
+
+            // text was inserted
+            public void insertUpdate(DocumentEvent e) {
+                searchText();
+            }
+        });
+    }
+
+    public void searchText() {
+        if (!searchTF.getText().equals("")) {
+            List idNumbers = manager.searchRecord(searchTF.getText(),
+                    categoriesList.getSelectedValue().toString());
+            MyTableCellRenderer renderer = new MyTableCellRenderer();
+            renderer.setRows(idNumbers);
+            recordsTable.setDefaultRenderer(Object.class, renderer);
+
+            if (idNumbers.size() == 1) {
+                searchLabel.setText("1 result found.");
+            } else {
+                searchLabel.setText(idNumbers.size() + " results found.");
+            }
+
+        } else {
+            searchLabel.setText("");
+            recordsTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer());
+        }
+
+        OdfTableModel model = (OdfTableModel) recordsTable.getModel();
+        model.fireUpdateAll();
+
     }
 
     /**
@@ -68,7 +110,6 @@ public class MainView extends javax.swing.JFrame {
         progressBar = new javax.swing.JProgressBar();
         backgroundActionTF = new javax.swing.JLabel();
         quickMenuBar = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         connectionStateLabel = new javax.swing.JLabel();
@@ -91,6 +132,7 @@ public class MainView extends javax.swing.JFrame {
         deleteRecordButton = new javax.swing.JButton();
         editRecordButton = new javax.swing.JButton();
         addRecordButton = new javax.swing.JButton();
+        searchLabel = new javax.swing.JLabel();
         menuBar = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         connectMenuItem = new javax.swing.JMenuItem();
@@ -161,19 +203,15 @@ public class MainView extends javax.swing.JFrame {
 
         quickMenuBar.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        jButton1.setText("jButton1");
-
         javax.swing.GroupLayout quickMenuBarLayout = new javax.swing.GroupLayout(quickMenuBar);
         quickMenuBar.setLayout(quickMenuBarLayout);
         quickMenuBarLayout.setHorizontalGroup(
             quickMenuBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(quickMenuBarLayout.createSequentialGroup()
-                .addComponent(jButton1)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         quickMenuBarLayout.setVerticalGroup(
             quickMenuBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jButton1)
+            .addGap(0, 23, Short.MAX_VALUE)
         );
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
@@ -234,6 +272,7 @@ public class MainView extends javax.swing.JFrame {
         });
 
         addCategoryButton.setText("Přidat");
+        addCategoryButton.setEnabled(false);
         addCategoryButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addCategoryButtonActionPerformed(evt);
@@ -275,6 +314,7 @@ public class MainView extends javax.swing.JFrame {
         jLabel4.setText("Hledání:");
 
         searchTF.setEnabled(false);
+        searchTF.setName(""); // NOI18N
 
         recordsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         recordsTable.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
@@ -315,9 +355,9 @@ public class MainView extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane4)
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                        .addGap(0, 257, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(addRecordButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(editRecordButton)
@@ -326,7 +366,10 @@ public class MainView extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(searchTF)))
+                        .addComponent(searchTF, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(searchLabel)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -335,7 +378,8 @@ public class MainView extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(searchTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(searchTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(searchLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -345,6 +389,8 @@ public class MainView extends javax.swing.JFrame {
                     .addComponent(addRecordButton))
                 .addContainerGap())
         );
+
+        searchLabel.getAccessibleContext().setAccessibleName("resultsLabel");
 
         jScrollPane2.setViewportView(jPanel3);
 
@@ -397,6 +443,11 @@ public class MainView extends javax.swing.JFrame {
         jMenu1.add(disconnectMenuItem);
 
         exitMenuItem.setText("Konec");
+        exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exitMenuItemActionPerformed(evt);
+            }
+        });
         jMenu1.add(exitMenuItem);
 
         menuBar.add(jMenu1);
@@ -411,13 +462,13 @@ public class MainView extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(statusBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(quickMenuBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 484, Short.MAX_VALUE))
+            .addComponent(quickMenuBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -429,7 +480,7 @@ public class MainView extends javax.swing.JFrame {
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1))
-                    .addComponent(jScrollPane2))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -592,15 +643,20 @@ public class MainView extends javax.swing.JFrame {
             tableModel.setMediaType(mediaType);
             recordsTable.setModel(tableModel);
         }
+
+        this.searchText();
+
     }//GEN-LAST:event_categoriesListValueChanged
 
     private void addCategoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCategoryButtonActionPerformed
-        MediaType type = Dialogs.newMediaTypeDialog();
-        manager.addMediaType(type.getName(), type.getAttributes());
-        DefaultListModel model = (DefaultListModel) categoriesList.getModel();
+        MediaType type = Dialogs.newMediaTypeDialog(manager.getMediaNames());
 
-        model.addElement(type.getName());
+        if (type != null) {
+            manager.addMediaType(type.getName(), type.getAttributes());
+            DefaultListModel model = (DefaultListModel) categoriesList.getModel();
 
+            model.addElement(type.getName());
+        }
     }//GEN-LAST:event_addCategoryButtonActionPerformed
 
     private void deleteCategoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteCategoryButtonActionPerformed
@@ -614,8 +670,10 @@ public class MainView extends javax.swing.JFrame {
         OdfTableModel model = (OdfTableModel) recordsTable.getModel();
         List record = Dialogs.newRecordDialog(model.getMediaType());
 
-        model.fireInserted();;
-        manager.addRecord(categoriesList.getSelectedValue().toString(), record);
+        if (record != null) {
+            model.fireInserted();
+            manager.addRecord(categoriesList.getSelectedValue().toString(), record);
+        }
     }//GEN-LAST:event_addRecordButtonActionPerformed
 
     private void saveFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveFileButtonActionPerformed
@@ -702,7 +760,7 @@ public class MainView extends javax.swing.JFrame {
 
     private void deleteRecordButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteRecordButtonActionPerformed
         OdfTableModel model = (OdfTableModel) recordsTable.getModel();
-        manager.deleteRecord(categoriesList.getSelectedValue().toString(), recordsTable.getSelectedRow()+1);
+        manager.deleteRecord(categoriesList.getSelectedValue().toString(), recordsTable.getSelectedRow() + 1);
         model.getMediaType().getRecords().remove(recordsTable.getSelectedRow());
 
         model.fireDeleted(recordsTable.getSelectedRow());
@@ -711,10 +769,16 @@ public class MainView extends javax.swing.JFrame {
     private void editRecordButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editRecordButtonActionPerformed
         OdfTableModel model = (OdfTableModel) recordsTable.getModel();
         List newAttributes = Dialogs.editRecordDialog(recordsTable.getSelectedRow(), model.getMediaType());
-        manager.editRecord(categoriesList.getSelectedValue().toString(), recordsTable.getSelectedRow()+1, newAttributes);
-        
-        model.fireUpdate(recordsTable.getSelectedRow());
+
+        if (newAttributes != null) {
+            manager.editRecord(categoriesList.getSelectedValue().toString(), recordsTable.getSelectedRow() + 1, newAttributes);
+            model.fireUpdate(recordsTable.getSelectedRow());
+        }
     }//GEN-LAST:event_editRecordButtonActionPerformed
+
+    private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_exitMenuItemActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCategoryButton;
@@ -732,7 +796,6 @@ public class MainView extends javax.swing.JFrame {
     private javax.swing.JPanel disconnectedPanel;
     private javax.swing.JButton editRecordButton;
     private javax.swing.JMenuItem exitMenuItem;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -756,6 +819,7 @@ public class MainView extends javax.swing.JFrame {
     private javax.swing.JTable recordsTable;
     private javax.swing.JMenuItem saveFileAsMenuItem;
     private javax.swing.JMenuItem saveFileMenuItem;
+    private javax.swing.JLabel searchLabel;
     private javax.swing.JTextField searchTF;
     private javax.swing.JPanel statusBar;
     // End of variables declaration//GEN-END:variables
@@ -790,6 +854,7 @@ public class MainView extends javax.swing.JFrame {
                     model.add(i, manager.getMediaNames().get(i));
                 }
                 categoriesList.setModel(model);
+                addCategoryButton.setEnabled(true);
             } catch (InterruptedException ex) {
                 Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ExecutionException ex) {
