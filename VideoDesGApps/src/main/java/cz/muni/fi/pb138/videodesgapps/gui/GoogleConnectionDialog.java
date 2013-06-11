@@ -18,11 +18,11 @@ import javax.swing.JOptionPane;
  */
 public class GoogleConnectionDialog extends javax.swing.JDialog implements ClipboardOwner {
 
-    public static final int CLOSED_OPTION = 0;
-    public static final int OK_OPTION = 1;
-    public static final int CANCEL_OPTION = 2;
+    public static final int RESULT_CLOSED = 0;
+    public static final int RESULT_OK = 1;
+    public static final int RESULT_CANCEL = 2;
     
-    private int result = CLOSED_OPTION;
+    private int result = RESULT_CLOSED;
     /**
      * Creates new form GoogleConnectionDialog
      */
@@ -147,13 +147,21 @@ public class GoogleConnectionDialog extends javax.swing.JDialog implements Clipb
     }// </editor-fold>//GEN-END:initComponents
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        result = CANCEL_OPTION;
+        result = RESULT_CANCEL;
         this.dispose();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        result = OK_OPTION;
-        this.setVisible(false);
+        if (codeTF.getText().trim().isEmpty()) {
+            int dialogResult = JOptionPane.showConfirmDialog(this, "Nevyplnil jste autorizační kód. Opravdu zrušit?", "Chyba", JOptionPane.YES_NO_OPTION);
+            if (dialogResult == JOptionPane.YES_OPTION) {
+                result = RESULT_CANCEL;
+                this.setVisible(false);
+            }
+        } else {
+            result = RESULT_OK;
+            this.setVisible(false);
+        }
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void copyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyButtonActionPerformed
