@@ -4,16 +4,18 @@
  */
 package cz.muni.fi.pb138.videodesgapps.gui;
 
-import cz.muni.fi.pb138.videodesgapps.gui.components.MyTableCellRenderer;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.ParentReference;
 import cz.muni.fi.pb138.videodesgapps.dommanager.DomManagerImpl;
 import cz.muni.fi.pb138.videodesgapps.dommanager.MediaType;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleConnection;
 import cz.muni.fi.pb138.videodesgapps.google.GoogleDriveService;
+import cz.muni.fi.pb138.videodesgapps.gui.components.MyTableCellRenderer;
 import cz.muni.fi.pb138.videodesgapps.gui.components.OdfTableModel;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -21,6 +23,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +32,6 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -43,7 +45,7 @@ public class MainView extends javax.swing.JFrame {
     private GoogleConnection gc;
     private GoogleDriveService service;
     private DomManagerImpl manager;
-    private File actualFile;
+    private File actualFile = new File();
     private boolean saved = true;
 
     /**
@@ -220,6 +222,8 @@ public class MainView extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setIcon(new javax.swing.ImageIcon(getImage("Google_Logo.png")));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -571,7 +575,7 @@ public class MainView extends javax.swing.JFrame {
         saveFileMenuItem.setEnabled(false);
         saveFileAsMenuItem.setEnabled(false);
         disconnectMenuItem.setEnabled(false);
-        
+
         addCategoryButton.setEnabled(false);
 
         statusLabel.setText("Odpojeno");
@@ -698,31 +702,36 @@ public class MainView extends javax.swing.JFrame {
     }//GEN-LAST:event_addRecordButtonActionPerformed
 
     private void saveFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveFileButtonActionPerformed
-        SwingWorker task;
+        if (this.actualFile.getId().isEmpty()) {
+            // File is new, is not loaded
+            saveAsFileButtonActionPerformed(evt);
+        } else {
+            SwingWorker task;
 
-        // Content
-        java.io.File content = manager.saveSpreadSheet();
+            // Content
+            java.io.File content = manager.saveSpreadSheet();
 
-        task = new SaveFileTask(service, actualFile, content);
+            task = new SaveFileTask(service, actualFile, content);
 
-        task.addPropertyChangeListener(
-                new PropertyChangeListener() {
-                    public void propertyChange(PropertyChangeEvent evt) {
-                        if ("state".equals(evt.getPropertyName())) {
-                            Object value = evt.getNewValue();
-                            if (value.equals(SwingWorker.StateValue.STARTED)) {
-                                statusLabel.setText("Ukládání souboru");
-                                progressBar.setValue(20);
-                            }
-                            if (value.equals(SwingWorker.StateValue.DONE)) {
-                                statusLabel.setText("Soubor uložen");
-                                progressBar.setValue(0);
+            task.addPropertyChangeListener(
+                    new PropertyChangeListener() {
+                        public void propertyChange(PropertyChangeEvent evt) {
+                            if ("state".equals(evt.getPropertyName())) {
+                                Object value = evt.getNewValue();
+                                if (value.equals(SwingWorker.StateValue.STARTED)) {
+                                    statusLabel.setText("Ukládání souboru");
+                                    progressBar.setValue(20);
+                                }
+                                if (value.equals(SwingWorker.StateValue.DONE)) {
+                                    statusLabel.setText("Soubor uložen");
+                                    progressBar.setValue(0);
+                                }
                             }
                         }
-                    }
-                });
+                    });
 
-        task.execute();
+            task.execute();
+        }
     }//GEN-LAST:event_saveFileButtonActionPerformed
 
     private void saveAsFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsFileButtonActionPerformed
@@ -862,7 +871,7 @@ public class MainView extends javax.swing.JFrame {
 
     /**
      * SwingWorker background task downloading file from Google Drive
-     * 
+     *
      */
     private class DownloadFileTask extends SwingWorker<java.io.File, Integer> {
 
@@ -905,11 +914,10 @@ public class MainView extends javax.swing.JFrame {
             }
         }
     }
-    
+
     /**
      * SwingWorker background task saving updating file saved at Google Drive
      */
-
     private class SaveFileTask extends SwingWorker<File, Integer> {
 
         private File fileToSave;
@@ -1075,7 +1083,7 @@ public class MainView extends javax.swing.JFrame {
                     saveFileMenuItem.setEnabled(true);
                     saveFileAsMenuItem.setEnabled(true);
                     disconnectMenuItem.setEnabled(true);
-                    
+
                     addCategoryButton.setEnabled(true);
 
                     saved = true;
@@ -1094,5 +1102,10 @@ public class MainView extends javax.swing.JFrame {
                         "Chyba při připojování ke Google Drive", "Chyba", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    public static Image getImage(final String pathAndFileName) {
+        final URL url = Thread.currentThread().getContextClassLoader().getResource(pathAndFileName);
+        return Toolkit.getDefaultToolkit().getImage(url);
     }
 }
