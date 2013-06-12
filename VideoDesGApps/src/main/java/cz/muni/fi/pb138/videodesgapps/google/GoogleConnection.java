@@ -19,22 +19,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Represents unique connection to Google account
  *
  * @author xnevrela
  */
 public class GoogleConnection {
 
-    static {
-        CLIENT_ID = "200863197931.apps.googleusercontent.com";
-        CLIENT_SECRET = "aKKa4YGHM-YsJkZvzpxpE8wM";
-        REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
-
-        connection = new GoogleConnection();
-    }
-    private static GoogleConnection connection;
-    private static String CLIENT_ID;
-    private static String CLIENT_SECRET;
-    private static String REDIRECT_URI;
+    // Application specific conection data
+    private static final String CLIENT_ID = "200863197931.apps.googleusercontent.com";
+    private static final String CLIENT_SECRET = "aKKa4YGHM-YsJkZvzpxpE8wM";
+    private static final String REDIRECT_URI= "urn:ietf:wg:oauth:2.0:oob";
+    // private fields
     private HttpTransport httpTransport;
     private JsonFactory jsonFactory;
     private GoogleAuthorizationCodeFlow flow;
@@ -48,6 +43,7 @@ public class GoogleConnection {
         httpTransport = new NetHttpTransport();
         jsonFactory = new JacksonFactory();
 
+        // Control flow of Google authentization service
         flow = new GoogleAuthorizationCodeFlow.Builder(
                 httpTransport, jsonFactory, CLIENT_ID, CLIENT_SECRET, Arrays.asList(DriveScopes.DRIVE))
                 .setAccessType("online")
@@ -58,18 +54,30 @@ public class GoogleConnection {
         connected = false;
     }
 
-    public static GoogleConnection getConnection() {
-        return connection;
-    }
-
+    /**
+     * Returns URL to OAuth 2 authentazation service
+     * 
+     * @return URL to OAuth 2 authentization seervice
+     */
     public String getAuthentizationUrl() {
         return this.url;
     }
 
+    /**
+     * Returns whether the connection to Google account was established.
+     * 
+     * @return true if connection is established. false otherwise.
+     */
     public boolean isConnected() {
         return this.connected;
     }
 
+    /**
+     * Tries to establish a connection to Google account specified by given code.
+     * 
+     * @param code authentization code.
+     * @return true if successfuly connected. false otherwise
+     */
     public boolean connect(String code) {
         boolean result = true;
 
@@ -88,8 +96,13 @@ public class GoogleConnection {
         return result;
     }
 
+    /**
+     * Builds instance of GoogleDriveService associated with this connection.
+     * 
+     * @return GoogleDriveService instance.
+     */
     public GoogleDriveService buildService() {
-        if (credential == null) {
+        if (!connected || credential == null) {
             return null;
         }
         if (service == null) {
@@ -98,9 +111,32 @@ public class GoogleConnection {
                     .build();
         }
 
-        return new GoogleDriveService(service);
+        return new GoogleDriveService(this, service);
     }
 
+    /**
+     * Refreshes authorization token, after it expires.
+     * 
+     * @return true if authorization token was successfuly refreshed. false otherwise.
+     */
+    public boolean refresh() {
+        boolean result = false;
+        if (credential != null) {
+            try {
+                credential.refreshToken();
+                result = true;
+            } catch (IOException ex) {
+                Logger.getLogger(GoogleConnection.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Closes this connection.
+     */
     public void close() {
+        this.connected = false;
     }
 }

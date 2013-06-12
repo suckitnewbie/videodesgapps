@@ -31,6 +31,11 @@ public class GoogleFileChooserDialog extends javax.swing.JDialog {
         initComponents();
     }
 
+    /**
+     * Opens dialog to open file from Google Drive
+     * 
+     * @return dialog result
+     */
     public int showOpenDialog() {
         okButton.setText("Otevřít");
         pathTF.setEnabled(false);
@@ -40,6 +45,11 @@ public class GoogleFileChooserDialog extends javax.swing.JDialog {
         return result;
     }
 
+    /**
+     * Opens dialog to save file to Google Drive
+     * 
+     * @return dialog result
+     */
     public int showSaveDialog() {
         okButton.setText("Uložit");
         pathTF.setEnabled(true);
@@ -49,6 +59,11 @@ public class GoogleFileChooserDialog extends javax.swing.JDialog {
         return result;
     }
 
+    /**
+     * Returns file reference to selected file.
+     * 
+     * @return file reference to selected file.
+     */
     public File getSelectedFile() {
         File result = null;
         Object selectedObject = jTree1.getSelectionPath().getLastPathComponent();

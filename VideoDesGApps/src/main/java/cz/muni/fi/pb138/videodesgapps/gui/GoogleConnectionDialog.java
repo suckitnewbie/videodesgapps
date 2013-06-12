@@ -33,14 +33,29 @@ public class GoogleConnectionDialog extends javax.swing.JDialog implements Clipb
         codeTF.requestFocusInWindow();
     }
 
+    /**
+     * Sets authentication URL to be displayed in the dialgo
+     * 
+     * @param url authentication URL
+     */
     public void setConnectionUrl(String url) {
         this.connectionUrlTF.setText(url);
     }
 
+    /**
+     * Returns code inserted to input field.
+     * 
+     * @return code inserted to input field.
+     */
     public String getCode() {
         return codeTF.getText();
     }
     
+    /**
+     * Shows dialog.
+     * 
+     * @return dialog result.
+     */
     public int showDialog() {
         this.setVisible(true);
         

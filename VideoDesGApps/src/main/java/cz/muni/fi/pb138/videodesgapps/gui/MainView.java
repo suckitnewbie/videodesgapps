@@ -571,6 +571,8 @@ public class MainView extends javax.swing.JFrame {
         saveFileMenuItem.setEnabled(false);
         saveFileAsMenuItem.setEnabled(false);
         disconnectMenuItem.setEnabled(false);
+        
+        addCategoryButton.setEnabled(false);
 
         statusLabel.setText("Odpojeno");
 
@@ -655,7 +657,7 @@ public class MainView extends javax.swing.JFrame {
             tableModel.setMediaType(mediaType);
             recordsTable.setModel(tableModel);
         } else {
-            recordsTable.setModel(new DefaultTableModel());
+            recordsTable.setModel(new OdfTableModel());
         }
 
         this.searchText();
@@ -858,6 +860,10 @@ public class MainView extends javax.swing.JFrame {
     private javax.swing.JLabel statusLabel;
     // End of variables declaration//GEN-END:variables
 
+    /**
+     * SwingWorker background task downloading file from Google Drive
+     * 
+     */
     private class DownloadFileTask extends SwingWorker<java.io.File, Integer> {
 
         private File fileToDownload;
@@ -899,6 +905,10 @@ public class MainView extends javax.swing.JFrame {
             }
         }
     }
+    
+    /**
+     * SwingWorker background task saving updating file saved at Google Drive
+     */
 
     private class SaveFileTask extends SwingWorker<File, Integer> {
 
@@ -939,6 +949,9 @@ public class MainView extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * SwingWorker background task saving new file to Google Drive
+     */
     private class SaveNewFileTask extends SwingWorker<File, Integer> {
 
         private File fileToSave;
@@ -979,6 +992,9 @@ public class MainView extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * SwingWorker background task connecting to Google Drive account.
+     */
     private class ConnectToGoogleDriveTask extends SwingWorker<GoogleDriveService, Integer> {
 
         public static final int CONNECTION_SUCCESSFUL = 0;
@@ -1059,6 +1075,8 @@ public class MainView extends javax.swing.JFrame {
                     saveFileMenuItem.setEnabled(true);
                     saveFileAsMenuItem.setEnabled(true);
                     disconnectMenuItem.setEnabled(true);
+                    
+                    addCategoryButton.setEnabled(true);
 
                     saved = true;
                 } else {
